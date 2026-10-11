@@ -1,169 +1,229 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#183b35">
-<title>Catálogo de inventario</title>
-<style>
-:root{--green:#183b35;--bg:#f4f6f3;--card:#fff;--muted:#65716c}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#17221e;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-.top{background:var(--green);color:white;padding:28px 18px 22px}
-.wrap{max-width:1100px;margin:auto}
-.top h1{margin:0 0 6px;font-size:clamp(24px,4vw,36px)}
-.top p{margin:0;color:#d6e5df}
-.controls{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
-.controls input,.controls select{border:1px solid #d5ddd7;border-radius:10px;padding:12px;background:white;font:inherit;flex:1;min-width:180px}
-.count{color:var(--muted);font-size:14px;margin:8px 0 14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.card{background:var(--card);border:1px solid #e1e7e2;border-radius:15px;overflow:hidden;box-shadow:0 2px 8px #14281a0b}
-.photo{height:190px;background:#e9eee9;display:flex;align-items:center;justify-content:center}
-.photo img{width:100%;height:100%;object-fit:contain}
-.noimg{color:#8a968e}
-.body{padding:14px}
-.category{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#557168;font-weight:700}
-.body h2{font-size:18px;margin:5px 0 8px}
-.desc{font-size:13px;color:var(--muted);min-height:34px}
-.price{font-weight:750;font-size:21px;margin:12px 0 6px}
-.meta{font-size:13px;color:#3f4d46;line-height:1.7}
-.detail{max-width:760px;margin:24px auto;padding:18px}
-.detail .card{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr)}
-.detail .photo{height:100%;min-height:320px}
-.back{display:inline-block;margin:18px 0;color:var(--green);font-weight:650;text-decoration:none}
-.empty{padding:35px;text-align:center;color:var(--muted)}
-footer{text-align:center;color:var(--muted);padding:28px 12px;font-size:12px}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183b35">
+  <title>Ficha del producto</title>
 
-/* NUEVO: ocultar encabezado y pie al abrir un producto */
-body.product-view > .top,
-body.product-view > footer{
-  display:none;
-}
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-/* Ajustes para celulares */
-@media(max-width:560px){
-  .detail .card{display:block}
-  .detail .photo{height:260px;min-height:0}
-  .detail{margin:0 auto;padding:12px}
-}
-</style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f4f6f3;
+      color: #17221e;
+      font-family: Arial, sans-serif;
+    }
+
+    .producto {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px #00000012;
+    }
+
+    .producto img {
+      display: block;
+      width: 100%;
+      max-height: 400px;
+      object-fit: contain;
+      margin: 0 auto 20px;
+    }
+
+    h1 {
+      font-size: 25px;
+      margin: 0 0 15px;
+    }
+
+    .categoria {
+      color: #557168;
+      font-size: 13px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .descripcion {
+      color: #65716c;
+      line-height: 1.5;
+    }
+
+    .precio {
+      font-size: 26px;
+      font-weight: bold;
+      margin: 18px 0;
+    }
+
+    .dato {
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e9e5;
+      line-height: 1.5;
+    }
+
+    .mensaje {
+      text-align: center;
+      padding: 30px 10px;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      .producto {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<header class="top">
-  <div class="wrap">
-    <h1>Catálogo de inventario</h1>
-    <p>Consulta productos, fotografías, cantidades y precios.</p>
-  </div>
-</header>
+  <main id="app" class="mensaje">
+    Cargando producto...
+  </main>
 
-<main class="wrap" id="app">
-  <div class="controls">
-    <input id="search" placeholder="Buscar producto o código…" aria-label="Buscar">
-    <select id="category" aria-label="Filtrar categoría">
-      <option value="">Todas las categorías</option>
-    </select>
-  </div>
-  <div class="count" id="count"></div>
-  <div class="grid" id="grid"></div>
-</main>
+  <script>
+    async function mostrarProducto() {
+      const app = document.getElementById("app");
+      const parametros = new URLSearchParams(
+        window.location.search
+      );
+      const id = parametros.get("id");
 
-<footer>Catálogo de productos · Información publicada para consulta</footer>
+      if (!id) {
+        app.innerHTML = `
+          <div class="mensaje">
+            <h2>Producto no especificado</h2>
+            <p>Escanea el código QR de un producto.</p>
+          </div>
+        `;
+        return;
+      }
 
-<script>
-let products=[];
+      try {
+        const respuesta = await fetch("./products.json");
 
-const money=v=>{
-  const n=Number(v);
-  return v!==''&&v!==null&&Number.isFinite(n)
-    ?n.toLocaleString('es-MX',{style:'currency',currency:'MXN'})
-    :(v||'No disponible');
-};
+        if (!respuesta.ok) {
+          throw new Error("No se pudo cargar el inventario");
+        }
 
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
-  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-}[c]));
+        const productos = await respuesta.json();
 
-function card(p,detail=false){
-  return `<article class="card">
-    <div class="photo">
-      ${p.image
-        ?`<img src="${esc(p.image)}" alt="${esc(p.name)}">`
-        :'<span class="noimg">Sin fotografía</span>'}
-    </div>
-    <div class="body">
-      <div class="category">${esc(p.category)}</div>
-      <h2>${esc(p.name)}</h2>
-      ${p.description?`<div class="desc">${esc(p.description)}</div>`:''}
-      <div class="price">${money(p.price)}</div>
-      <div class="meta">
-        <b>Código:</b> ${esc(p.barcode||p.id)}<br>
-        <b>Cantidad:</b> ${esc(p.quantity)} ${esc(p.unit)}
-        ${p.expiration&&p.expiration!=='No aplica'
-          ?`<br><b>Caducidad:</b> ${esc(p.expiration)}`
-          :''}
-      </div>
-      ${!detail?`<p><a href="?id=${encodeURIComponent(p.id)}">Ver ficha del producto →</a></p>`:''}
-    </div>
-  </article>`;
-}
+        const producto = productos.find(
+          p => String(p.id) === id
+        );
 
-async function init(){
-  const res=await fetch('./products.json');
-  products=await res.json();
+        if (!producto) {
+          app.innerHTML = `
+            <div class="mensaje">
+              <h2>Producto no encontrado</h2>
+              <p>Verifica que el código QR sea correcto.</p>
+            </div>
+          `;
+          return;
+        }
 
-  const params=new URLSearchParams(location.search);
-  const id=params.get('id');
+        const escapar = valor =>
+          String(valor ?? "No disponible").replace(
+            /[&<>"']/g,
+            caracter => ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;"
+            })[caracter]
+          );
 
-  if(id){
-    document.body.classList.add('product-view');
+        const dinero = valor => {
+          const numero = Number(valor);
 
-    const p=products.find(x=>String(x.id)===id);
+          return valor !== "" &&
+            valor !== null &&
+            Number.isFinite(numero)
+            ? numero.toLocaleString("es-MX", {
+                style: "currency",
+                currency: "MXN"
+              })
+            : escapar(valor || "No disponible");
+        };
 
-    document.querySelector('#app').innerHTML=p
-      ?`<div class="detail">${card(p,true)}</div>`
-      :'<div class="empty">No se encontró ese producto.</div>';
+        app.className = "producto";
 
-    document.title=p?p.name:'Producto no encontrado';
-    return;
-  }
+        app.innerHTML = `
+          ${
+            producto.image
+              ? `<img
+                   src="${escapar(producto.image)}"
+                   alt="${escapar(producto.name)}"
+                 >`
+              : ""
+          }
 
-  const sel=document.querySelector('#category');
+          <div class="categoria">
+            ${escapar(producto.category)}
+          </div>
 
-  [...new Set(products.map(p=>p.category))].forEach(c=>{
-    const o=document.createElement('option');
-    o.value=c;
-    o.textContent=c;
-    sel.append(o);
-  });
+          <h1>${escapar(producto.name)}</h1>
 
-  function render(){
-    const q=document.querySelector('#search').value.toLowerCase();
-    const cat=sel.value;
+          ${
+            producto.description
+              ? `<p class="descripcion">
+                   ${escapar(producto.description)}
+                 </p>`
+              : ""
+          }
 
-    const list=products.filter(p=>
-      (!cat||p.category===cat)&&
-      [p.name,p.id,p.barcode,p.description,p.category]
-        .join(' ').toLowerCase().includes(q)
-    );
+          <div class="precio">
+            ${dinero(producto.price)}
+          </div>
 
-    document.querySelector('#count').textContent=
-      `${list.length} de ${products.length} productos`;
+          <div class="dato">
+            <strong>Código:</strong>
+            ${escapar(producto.barcode || producto.id)}
+          </div>
 
-    document.querySelector('#grid').innerHTML=
-      list.map(p=>card(p)).join('')||
-      '<div class="empty">No se encontraron productos.</div>';
-  }
+          <div class="dato">
+            <strong>Cantidad:</strong>
+            ${escapar(producto.quantity)}
+            ${escapar(producto.unit || "")}
+          </div>
 
-  document.querySelector('#search').addEventListener('input',render);
-  sel.addEventListener('change',render);
-  render();
-}
+          ${
+            producto.expiration &&
+            producto.expiration !== "No aplica"
+              ? `<div class="dato">
+                   <strong>Caducidad:</strong>
+                   ${escapar(producto.expiration)}
+                 </div>`
+              : ""
+          }
+        `;
 
-init().catch(()=>{
-  document.querySelector('#app').innerHTML=
-    '<p>No se pudo cargar el catálogo. Comprueba que los archivos estén publicados juntos.</p>';
-});
-</script>
+        document.title = producto.name + " - Ficha del producto";
+
+      } catch (error) {
+        app.innerHTML = `
+          <div class="mensaje">
+            <h2>No se pudo cargar el producto</h2>
+            <p>Comprueba que products.json y la carpeta
+            images estén publicados correctamente.</p>
+          </div>
+        `;
+      }
+    }
+
+    mostrarProducto();
+  </script>
 </body>
 </html>
